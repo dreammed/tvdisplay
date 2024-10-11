@@ -145,7 +145,7 @@
     <div class="container">
         <div class="section">
             <div class="columns">
-                <div class="column">Row 1 - 18 items</div>
+                <div class="column">ออกใบเสนอราคา</div>
                 <div class="column slideshow-container" data-box-width="20" data-speed="5">
                     <div class="slideshow"></div>
                 </div>
@@ -153,7 +153,7 @@
         </div>
         <div class="section">
             <div class="columns">
-                <div class="column">Row 2 - 4 items</div>
+                <div class="column">ออกแบบ</div>
                 <div class="column slideshow-container" data-box-width="20" data-speed="5">
                     <div class="slideshow"></div>
                 </div>
@@ -161,7 +161,7 @@
         </div>
         <div class="section">
             <div class="columns">
-                <div class="column">Row 3 - 3 items</div>
+                <div class="column">กำลังผลิต</div>
                 <div class="column slideshow-container" data-box-width="20" data-speed="5">
                     <div class="slideshow"></div>
                 </div>
@@ -169,7 +169,7 @@
         </div>
         <div class="section">
             <div class="columns">
-                <div class="column">Row 4 - 8 items</div>
+                <div class="column">ผลิตเสร็จแล้ว</div>
                 <div class="column slideshow-container" data-box-width="20" data-speed="5">
                     <div class="slideshow"></div>
                 </div>
@@ -184,10 +184,10 @@
     <script>
         // Mock API data
         const mockApiData = {
-            row1: Array.from({ length: 18 }, (_, i) => ({ id: i + 1, title: `Item ${i + 1}`, data: `Data ${i + 1}` })),
-            row2: Array.from({ length: 6 }, (_, i) => ({ id: i + 1, title: `Entry ${i + 1}`, data: `Info ${i + 1}` })),
-            row3: Array.from({ length: 3 }, (_, i) => ({ id: i + 1, title: `Record ${i + 1}`, data: `Detail ${i + 1}` })),
-            row4: Array.from({ length: 8 }, (_, i) => ({ id: i + 1, title: `Element ${i + 1}`, data: `Value ${i + 1}` }))
+            row1: Array.from({ length: 18 }, (_, i) => ({ id: i + 1, title: `Item ${i + 1}`, data: `Detail ${i + 1}` })),
+            row2: Array.from({ length: 6 }, (_, i) => ({ id: i + 1, title: `Item ${i + 1}`, data: `Detail ${i + 1}` })),
+            row3: Array.from({ length: 3 }, (_, i) => ({ id: i + 1, title: `Item ${i + 1}`, data: `Detail ${i + 1}` })),
+            row4: Array.from({ length: 8 }, (_, i) => ({ id: i + 1, title: `Item ${i + 1}`, data: `Detail ${i + 1}` }))
         };
 
         function fetchDataForRow(rowNumber) {
@@ -203,7 +203,7 @@
                 this.container = container;
                 this.slideshow = container.querySelector('.slideshow');
                 this.boxesPerView = 5; // แสดง 5 กล่องเสมอ
-                this.interval = 2000; // 2 วินาที
+                this.interval = 5000; // 2 วินาที
                 this.rowNumber = rowNumber;
                 this.currentIndex = 0;
                 this.data = [];
