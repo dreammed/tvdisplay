@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TVCast</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+        }
+
+        .section {
+            border: 1px solid black;
+            padding: 10px;
+            flex: 1;
+            display: flex;
+            min-height: 0;
+            box-sizing: border-box;
+        }
+
+        .columns {
+            display: flex;
+            flex: 1;
+            min-height: 0;
+        }
+
+        .column:first-child {
+            padding: 10px;
+            border: 1px solid black;
+            writing-mode: vertical-lr;
+            text-align: center;
+            transform: rotate(180deg);
+            box-sizing: border-box;
+            width: 40px;
+        }
+
+        .column:last-child {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid black;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .footer {
+            border: 1px solid black;
+            padding: 10px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-sizing: border-box;
+        }
+
+        .slideshow-container {
+            overflow: hidden;
+            width: 100%;
+            position: relative;
+        }
+
+        .slideshow {
+            display: flex;
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+        }
+
+        .box {
+            border: 1px solid gray;
+            padding: 5px;
+            margin: 2px;
+            box-sizing: border-box;
+            flex: 0 0 20%; /* กำหนดขนาดกล่องให้เท่ากันทุกกล่อง */
+            height: calc(100% - 4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #f0f0f0;
+            font-size: 12px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            transition: opacity 0.3s ease;
+        }
+
+        .box.empty {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+        }
+
+        #status-display {
+            font-size: 14px;
+            padding: 10px;
+            background-color: #f0f0f0;
+            border-top: 1px solid #ddd;
+        }
+
+        #status-display span {
+            font-weight: bold;
+        }
+
+        #status-display .up {
+            color: green;
+        }
+
+        #status-display .down {
+            color: red;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-left: 5px;
+            margin-right: 10px;
+        }
+
+        .status-indicator.up {
+            background-color: green;
+        }
+
+        .status-indicator.down {
+            background-color: red;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="section">
+            <div class="columns">
+                <div class="column">Row 1 - 18 items</div>
+                <div class="column slideshow-container" data-box-width="20" data-speed="5">
+                    <div class="slideshow"></div>
+                </div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="columns">
+                <div class="column">Row 2 - 4 items</div>
+                <div class="column slideshow-container" data-box-width="20" data-speed="5">
+                    <div class="slideshow"></div>
+                </div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="columns">
+                <div class="column">Row 3 - 3 items</div>
+                <div class="column slideshow-container" data-box-width="20" data-speed="5">
+                    <div class="slideshow"></div>
+                </div>
+            </div>
+        </div>
+        <div class="section">
+            <div class="columns">
+                <div class="column">Row 4 - 8 items</div>
+                <div class="column slideshow-container" data-box-width="20" data-speed="5">
+                    <div class="slideshow"></div>
+                </div>
+            </div>
+        </div>
+        <div class="footer">
+            สถานะ tumook.com <span class="status-wrapper"><span class="status-indicator tumtookStatus"></span></span> 
+            สถานะ internet <span class="status-wrapper"><span class="status-indicator internetStatus"></span></span>
+        </div>
+    </div>
+
+    <script>
+        // Mock API data
+        const mockApiData = {
+            row1: Array.from({ length: 18 }, (_, i) => ({ id: i + 1, title: `Item ${i + 1}`, data: `Data ${i + 1}` })),
+            row2: Array.from({ length: 6 }, (_, i) => ({ id: i + 1, title: `Entry ${i + 1}`, data: `Info ${i + 1}` })),
+            row3: Array.from({ length: 3 }, (_, i) => ({ id: i + 1, title: `Record ${i + 1}`, data: `Detail ${i + 1}` })),
+            row4: Array.from({ length: 8 }, (_, i) => ({ id: i + 1, title: `Element ${i + 1}`, data: `Value ${i + 1}` }))
+        };
+
+        function fetchDataForRow(rowNumber) {
+            return new Promise((resolve) => {
+                setTimeout(() => {
+                    resolve(mockApiData[`row${rowNumber}`]);
+                }, 300);
+            });
+        }
+
+        class Slideshow {
+            constructor(container, rowNumber) {
+                this.container = container;
+                this.slideshow = container.querySelector('.slideshow');
+                this.boxesPerView = 5; // แสดง 5 กล่องเสมอ
+                this.interval = 2000; // 2 วินาที
+                this.rowNumber = rowNumber;
+                this.currentIndex = 0;
+                this.data = [];
+                this.init();
+            }
+
+            async init() {
+                try {
+                    this.data = await fetchDataForRow(this.rowNumber);
+                    this.createInitialBoxes();
+                    if (this.data.length > this.boxesPerView) {
+                        this.startRotation();
+                    }
+                } catch (error) {
+                    console.error('Error fetching data:', error);
+                }
+            }
+
+            createInitialBoxes() {
+                const boxWidth = 100 / this.boxesPerView;
+                const fragment = document.createDocumentFragment();
+                
+                for (let i = 0; i < this.boxesPerView; i++) {
+                    const box = this.createDataBox(this.data[i] || {title: '', data: ''}, boxWidth);
+                    fragment.appendChild(box);
+                }
+
+                this.slideshow.innerHTML = ''; // Clear existing content
+                this.slideshow.appendChild(fragment);
+            }
+
+            createDataBox(item, width) {
+                const box = document.createElement('div');
+                box.classList.add('box');
+                box.style.width = `${width}%`;
+                if (item.title || item.data) {
+                    box.innerHTML = `
+                        <div>
+                            <div>${item.title}</div>
+                            <div>${item.data}</div>
+                        </div>
+                    `;
+                } else {
+                    box.classList.add('empty');
+                }
+                return box;
+            }
+
+            startRotation() {
+                setInterval(() => {
+                    this.currentIndex = (this.currentIndex + 1) % this.data.length;
+                    this.updateBoxes();
+                }, this.interval);
+            }
+
+            updateBoxes() {
+                const boxes = this.slideshow.querySelectorAll('.box');
+                for (let i = 0; i < this.boxesPerView; i++) {
+                    const dataIndex = (this.currentIndex + i) % this.data.length;
+                    const item = this.data[dataIndex];
+                    const box = boxes[i];
+                    
+                    if (item.title || item.data) {
+                        box.innerHTML = `
+                            <div>
+                                <div>${item.title}</div>
+                                <div>${item.data}</div>
+                            </div>
+                        `;
+                        box.classList.remove('empty');
+                    } else {
+                        box.innerHTML = '';
+                        box.classList.add('empty');
+                    }
+                }
+            }
+        }
+
+        class StatusChecker {
+            constructor() {
+                this.tumtookStatusElement = document.querySelector('.tumtookStatus');
+                this.internetStatusElement = document.querySelector('.internetStatus');
+                this.checkStatus();
+                setInterval(() => this.checkStatus(), 30000); // ตรวจสอบทุก 30 วินาที
+            }
+
+            async checkStatus() {
+                const tumtookStatus = await this.checkWebsite('https://tumtook.com');
+                const internetStatus = await this.checkInternetConnection();
+                
+                this.updateStatusDisplay(tumtookStatus, internetStatus);
+            }
+
+            async checkWebsite(url) {
+                try {
+                    const response = await fetch(url, { mode: 'no-cors', cache: 'no-store' });
+                    return response.type === 'opaque' ? 'up' : 'down';
+                } catch (error) {
+                    return 'down';
+                }
+            }
+
+            async checkInternetConnection() {
+                try {
+                    await fetch('https://www.google.com', { mode: 'no-cors', cache: 'no-store' });
+                    return 'up';
+                } catch (error) {
+                    return 'down';
+                }
+            }
+
+            updateStatusDisplay(tumtookStatus, internetStatus) {
+                this.tumtookStatusElement.className = `status-indicator tumtookStatus ${tumtookStatus}`;
+                this.internetStatusElement.className = `status-indicator internetStatus ${internetStatus}`;
+            }
+        }
+
+        // สร้าง slideshow สำหรับแต่ละแถว
+        document.querySelectorAll('.slideshow-container').forEach((container, index) => {
+            new Slideshow(container, index + 1);
+        });
+
+        // เริ่มการตรวจสอบสถานะ
+        new StatusChecker();
+    </script>
+</body>
+
+</html>
